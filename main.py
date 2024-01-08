@@ -1,4 +1,6 @@
 import json
+import argparse
+import sys
 
 
 def format_php_array(data, indent=0):
@@ -38,9 +40,31 @@ def format_php_value(value, indent):
         return str(value)
 
 
-if __name__ == "__main__":
-    json_data = json.load(open("./input.json", "r"))
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Convert JSON to PHP array.")
+    parser.add_argument("input_file", nargs='?', default="./input.json",
+                        help="Path to the input JSON file. Default is './input.json'")
+    parser.add_argument("output_file", nargs='?', default=None,
+                        help="Path to the output PHP file. If not provided, output will be printed to console.")
 
-    # 格式化PHP数组
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_arguments()
+
+    try:
+        with open(args.input_file, "r") as file:
+            json_data = json.load(file)
+    except FileNotFoundError:
+        sys.exit(f"Error: The file '{args.input_file}' does not exist.")
+    except json.JSONDecodeError:
+        sys.exit(f"Error: The file '{args.input_file}' contains invalid JSON.")
+
     formatted_php_array = format_php_array(json_data)
-    print("<?php\n$myArray = " + formatted_php_array + ";\n?>")
+
+    if args.output_file:
+        with open(args.output_file, "w") as output_file:
+            output_file.write("<?php\n$myArray = " + formatted_php_array + ";\n?>")
+    else:
+        print("<?php\n$myArray = " + formatted_php_array + ";\n?>")
